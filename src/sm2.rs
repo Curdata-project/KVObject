@@ -24,7 +24,7 @@ impl asymmetric_crypto::prelude::Keypair for KeyPairSm2 {
 
     type Signature = signature::sm2::Signature<dislog_hal_sm2::ScalarInner>;
 
-    type CertificateT = CertificateSm2;
+    type Certificate = CertificateSm2;
 
     fn generate<R: RngCore>(rng: &mut R) -> Result<Self, CryptoError> {
         match Keypair::generate::<R>(rng) {
@@ -50,7 +50,7 @@ impl asymmetric_crypto::prelude::Keypair for KeyPairSm2 {
         signature::sm2::sm2_signature::<_, H, _, _, R>(hasher, &self.0.get_secret_key(), rng)
     }
 
-    fn gen_certificate(&self) -> Self::CertificateT {
+    fn get_certificate(&self) -> Self::Certificate {
         CertificateSm2(self.0.get_public_key())
     }
 }
@@ -114,7 +114,7 @@ mod tests {
 
         println!("sigture: {:?}", sig_info.to_bytes());
 
-        let cert_sm2 = keypair_sm2.gen_certificate();
+        let cert_sm2 = keypair_sm2.get_certificate();
 
         let ans = cert_sm2.verify::<Sm3>(&data_b[..], &sig_info);
         assert_eq!(ans, true);

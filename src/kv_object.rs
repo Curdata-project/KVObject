@@ -139,7 +139,7 @@ impl<T: KVWrapperT> KVObject for KvWrapper<T> {
             .sign::<Sm3, _>(body_.as_ref(), &mut thread_rng())
             .map_err(|_| KVObjectError::SerializeSignError)?;
         self.sigture = Some(sigture);
-        self.cert = Some(keypair.gen_certificate());
+        self.cert = Some(keypair.get_certificate());
 
         ret.extend_from_slice(self.msg_type.to_bytes().as_ref());
         if let Some(cert) = &self.cert {
