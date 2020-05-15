@@ -94,8 +94,8 @@ impl<T: KVWrapperT> KvWrapper<T> {
         }
     }
 
-    pub fn get_body(&self) -> T {
-        self.t_obj.clone()
+    pub fn get_body(&self) -> &T {
+        &self.t_obj
     }
 }
 
