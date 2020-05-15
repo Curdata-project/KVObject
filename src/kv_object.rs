@@ -26,6 +26,8 @@ const HEAD_TOTAL_LEN: usize = MSGTYPE_LEN + CERT_LEN + SIGTURE_LEN;
 pub enum MsgType {
     PREISSUE,
     ISSUE,
+    Quota,
+    Currency,
 }
 
 impl Bytes for MsgType {
@@ -48,6 +50,8 @@ impl Bytes for MsgType {
         Vec::<u8>::from(match self {
             MsgType::PREISSUE => [0x01],
             MsgType::ISSUE => [0x02],
+            MsgType::Quota => [0x03],
+            MsgType::Currency => [0x04],
         })
     }
 }
@@ -116,7 +120,7 @@ impl<T: KVWrapperT> KVObject for KvWrapper<T> {
         // 根据证书链验证证书，略过
         // 根据证书验证签名
         let isvalid = cert.verify::<Sm3>(&bytes[HEAD_TOTAL_LEN..], &sigture);
-        if isvalid == false {
+        if !isvalid {
             return Err(KVObjectError::DeSerializeVerifyError);
         }
         // 序列化结构体T

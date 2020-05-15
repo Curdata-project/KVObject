@@ -8,7 +8,7 @@ use dislog_hal_sm2::NewU833;
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeyPairSm2(
     pub Keypair<[u8; 32], Sha3, dislog_hal_sm2::PointInner, dislog_hal_sm2::ScalarInner>,
 );
@@ -55,7 +55,7 @@ impl asymmetric_crypto::prelude::Keypair for KeyPairSm2 {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CertificateSm2(<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Public);
 
 impl Certificate for CertificateSm2 {
