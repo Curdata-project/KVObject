@@ -22,7 +22,7 @@ const SIGTURE_END: usize = SIGTURE_OFFSET + SIGTURE_LEN;
 
 const HEAD_TOTAL_LEN: usize = MSGTYPE_LEN + CERT_LEN + SIGTURE_LEN;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MsgType {
     PREISSUE,
     ISSUE,
@@ -66,11 +66,16 @@ pub fn get_msgtpye(data: &[u8]) -> Result<MsgType, KVObjectError> {
 }
 
 pub trait KVWrapperT:
-    Serialize + for<'de> Deserialize<'de> + Bytes<Error = KVObjectError> + AttrProxy<Byte = Vec<u8>>
+    Debug
+    + Clone
+    + Serialize
+    + for<'de> Deserialize<'de>
+    + Bytes<Error = KVObjectError>
+    + AttrProxy<Byte = Vec<u8>>
 {
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KvWrapper<T: KVWrapperT> {
     msg_type: MsgType,
     cert: Option<CertificateSm2>,
@@ -87,6 +92,10 @@ impl<T: KVWrapperT> KvWrapper<T> {
             sigture: None,
             t_obj,
         }
+    }
+
+    pub fn get_body(&self) -> T {
+        self.t_obj.clone()
     }
 }
 
