@@ -1,4 +1,4 @@
-use crate::prelude::{AttrProxy, KVObject};
+use crate::prelude::{AttrProxy, KValueObject};
 use crate::sm2::{CertificateSm2, KeyPairSm2};
 use crate::KVObjectError;
 use asymmetric_crypto::hasher::sm3::Sm3;
@@ -65,7 +65,7 @@ pub fn get_msgtpye(data: &[u8]) -> Result<MsgType, KVObjectError> {
         .map_err(|_| KVObjectError::FindTypeError)
 }
 
-pub trait KVWrapperT:
+pub trait KVBody:
     Debug
     + Clone
     + Serialize
@@ -76,15 +76,15 @@ pub trait KVWrapperT:
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct KvWrapper<T: KVWrapperT> {
+pub struct KVObject<T: KVBody> {
     msg_type: MsgType,
     cert: Option<CertificateSm2>,
     sigture: Option<<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature>,
-    #[serde(bound(deserialize = "T: KVWrapperT"))]
+    #[serde(bound(deserialize = "T: KVBody"))]
     t_obj: T,
 }
 
-impl<T: KVWrapperT> KvWrapper<T> {
+impl<T: KVBody> KVObject<T> {
     pub fn new(msg_type: MsgType, t_obj: T) -> Self {
         Self {
             msg_type,
@@ -99,7 +99,7 @@ impl<T: KVWrapperT> KvWrapper<T> {
     }
 }
 
-impl<T: KVWrapperT> KVObject for KvWrapper<T> {
+impl<T: KVBody> KValueObject for KVObject<T> {
     type Bytes = Vec<u8>;
 
     type KeyPair = KeyPairSm2;
@@ -167,7 +167,7 @@ impl<T: KVWrapperT> KVObject for KvWrapper<T> {
     }
 }
 
-impl<T: KVWrapperT> AttrProxy for KvWrapper<T> {
+impl<T: KVBody> AttrProxy for KVObject<T> {
     type Byte = Vec<u8>;
 
     // 根据key读取值

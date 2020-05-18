@@ -2,8 +2,8 @@ use asymmetric_crypto::prelude::Keypair;
 use core::fmt::Debug;
 use dislog_hal::Bytes;
 use kv_object::kv_object::MsgType;
-use kv_object::kv_object::{get_msgtpye, KVWrapperT, KvWrapper};
-use kv_object::prelude::{AttrProxy, KVObject};
+use kv_object::kv_object::{get_msgtpye, KVBody, KVObject};
+use kv_object::prelude::{AttrProxy, KValueObject};
 use kv_object::sm2::KeyPairSm2;
 use kv_object::KVObjectError;
 use rand::thread_rng;
@@ -80,9 +80,9 @@ impl AttrProxy for TestPoint {
     }
 }
 
-impl KVWrapperT for TestPoint {}
+impl KVBody for TestPoint {}
 
-type NewPoint = KvWrapper<TestPoint>;
+type NewPoint = KVObject<TestPoint>;
 
 #[test]
 fn test_json_object() {
