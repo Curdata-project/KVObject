@@ -9,7 +9,7 @@ use kv_object::KVObjectError;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TestPoint {
     pub x: i32,
     pub y: i32,
