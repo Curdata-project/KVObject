@@ -13,7 +13,7 @@ pub trait AttrProxy {
     fn set_key(&mut self, key: &str, value: &Self::Byte) -> Result<(), KVObjectError>;
 }
 
-pub trait KVObject: Serialize + for<'de> Deserialize<'de> + AttrProxy {
+pub trait KValueObject: Serialize + for<'de> Deserialize<'de> + AttrProxy {
     type Bytes: Debug + AsRef<[u8]>;
 
     type Signature: Serialize + for<'de> Deserialize<'de> + Bytes;
