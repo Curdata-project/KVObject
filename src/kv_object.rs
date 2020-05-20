@@ -24,11 +24,11 @@ pub const HEAD_TOTAL_LEN: usize = MSGTYPE_LEN + CERT_LEN + SIGTURE_LEN;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MsgType {
-    PREISSUE,
-    ISSUE,
-    Quota,
-    Currency,
+    IssueQuotaRequest,
+    QuotaControlField,
+    DigitalCurrency,
     QuotaRecycleReceipt,
+    Transaction,
 }
 
 impl Bytes for MsgType {
@@ -41,22 +41,22 @@ impl Bytes for MsgType {
             return Err(KVObjectError::DeSerializeError);
         }
         match bytes[0] {
-            0x01 => Ok(MsgType::PREISSUE),
-            0x02 => Ok(MsgType::ISSUE),
-            0x03 => Ok(MsgType::Quota),
-            0x04 => Ok(MsgType::Currency),
-            0x05 => Ok(MsgType::QuotaRecycleReceipt),
+            0x01 => Ok(MsgType::IssueQuotaRequest),
+            0x02 => Ok(MsgType::QuotaControlField),
+            0x03 => Ok(MsgType::DigitalCurrency),
+            0x04 => Ok(MsgType::QuotaRecycleReceipt),
+            0x05 => Ok(MsgType::Transaction),
             _ => Err(KVObjectError::DeSerializeError),
         }
     }
 
     fn to_bytes(&self) -> Self::BytesType {
         Vec::<u8>::from(match self {
-            MsgType::PREISSUE => [0x01],
-            MsgType::ISSUE => [0x02],
-            MsgType::Quota => [0x03],
-            MsgType::Currency => [0x04],
-            MsgType::QuotaRecycleReceipt => [0x05],
+            MsgType::IssueQuotaRequest => [0x01],
+            MsgType::QuotaControlField => [0x02],
+            MsgType::DigitalCurrency => [0x03],
+            MsgType::QuotaRecycleReceipt => [0x04],
+            MsgType::Transaction => [0x05],
         })
     }
 }

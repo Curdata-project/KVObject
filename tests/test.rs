@@ -100,7 +100,7 @@ fn test_kvwrapper() {
     let mut rng = thread_rng();
     let keypair_sm2: KeyPairSm2 = KeyPairSm2::generate(&mut rng).unwrap();
 
-    let mut point = NewPoint::new(MsgType::PREISSUE, TestPoint { x: 3, y: 5 });
+    let mut point = NewPoint::new(MsgType::IssueQuotaRequest, TestPoint { x: 3, y: 5 });
 
     //let box_point = Box::new(point);
 
@@ -137,7 +137,7 @@ fn test_kvwrapper() {
 
     assert_eq!(
         match get_msgtpye(&sign_point_1).unwrap() {
-            MsgType::PREISSUE => "right type",
+            MsgType::IssueQuotaRequest => "right type",
             _ => panic!(),
         },
         "right type"
