@@ -112,6 +112,8 @@ fn test_kvwrapper() {
 
     let mut point_1 = NewPoint::from_bytes(&sign_bytes).unwrap();
 
+    assert!(point_1.verfiy_kvhead().is_ok(), true);
+
     println!("{:?}", point_1);
 
     assert_eq!(Vec::<u8>::from([3, 0, 0, 0]), point_1.get_key("x").unwrap());
@@ -143,7 +145,15 @@ fn test_kvwrapper() {
 
     let point_2 = NewPoint::from_bytes(&sign_point_1).unwrap();
 
+    assert!(point_1.verfiy_kvhead().is_ok(), true);
+
     println!("{:?}", point_2);
     assert_eq!(Vec::<u8>::from([7, 0, 0, 0]), point_1.get_key("x").unwrap());
     assert_eq!(Vec::<u8>::from([9, 0, 0, 0]), point_1.get_key("y").unwrap());
+
+    point_1
+        .set_key("y", &Vec::<u8>::from([6, 0, 0, 0]))
+        .unwrap();
+
+    assert!(point_1.verfiy_kvhead().is_err(), false);
 }

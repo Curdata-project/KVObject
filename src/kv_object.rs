@@ -28,6 +28,7 @@ pub enum MsgType {
     ISSUE,
     Quota,
     Currency,
+    QuotaRecycleReceipt,
 }
 
 impl Bytes for MsgType {
@@ -42,6 +43,9 @@ impl Bytes for MsgType {
         match bytes[0] {
             0x01 => Ok(MsgType::PREISSUE),
             0x02 => Ok(MsgType::ISSUE),
+            0x03 => Ok(MsgType::Quota),
+            0x04 => Ok(MsgType::Currency),
+            0x05 => Ok(MsgType::QuotaRecycleReceipt),
             _ => Err(KVObjectError::DeSerializeError),
         }
     }
@@ -52,6 +56,7 @@ impl Bytes for MsgType {
             MsgType::ISSUE => [0x02],
             MsgType::Quota => [0x03],
             MsgType::Currency => [0x04],
+            MsgType::QuotaRecycleReceipt => [0x05],
         })
     }
 }
@@ -99,16 +104,11 @@ impl<T: KVBody> KVObject<T> {
     }
 }
 
-impl<T: KVBody> KValueObject for KVObject<T> {
-    type Bytes = Vec<u8>;
+impl<T: KVBody> Bytes for KVObject<T> {
+    type BytesType = Vec<u8>;
 
-    type KeyPair = KeyPairSm2;
+    type Error = KVObjectError;
 
-    type Certificate = CertificateSm2;
-
-    type Signature = <KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature;
-
-    // 从Bytes反序列化
     fn from_bytes(bytes: &[u8]) -> Result<Self, KVObjectError> {
         if bytes.len() < HEAD_TOTAL_LEN {
             return Err(KVObjectError::DeSerializeError);
@@ -126,12 +126,6 @@ impl<T: KVBody> KValueObject for KVObject<T> {
             return Err(KVObjectError::DeSerializeError);
         }
 
-        // 根据证书链验证证书，略过
-        // 根据证书验证签名
-        let isvalid = cert.verify::<Sm3>(&bytes[HEAD_TOTAL_LEN..], &sigture);
-        if !isvalid {
-            return Err(KVObjectError::DeSerializeVerifyError);
-        }
         // 序列化结构体T
         let t_obj = T::from_bytes(&bytes[HEAD_TOTAL_LEN..])?;
 
@@ -143,8 +137,7 @@ impl<T: KVBody> KValueObject for KVObject<T> {
         })
     }
 
-    // 序列化成Bytes
-    fn to_bytes(&self) -> Self::Bytes {
+    fn to_bytes(&self) -> Self::BytesType {
         let mut ret = Vec::<u8>::new();
 
         ret.extend_from_slice(self.msg_type.to_bytes().as_ref());
@@ -158,6 +151,14 @@ impl<T: KVBody> KValueObject for KVObject<T> {
 
         ret
     }
+}
+
+impl<T: KVBody> KValueObject for KVObject<T> {
+    type KeyPair = KeyPairSm2;
+
+    type Certificate = CertificateSm2;
+
+    type Signature = <KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature;
 
     fn fill_kvhead(&mut self, keypair: &Self::KeyPair) -> Result<(), KVObjectError> {
         let body_ = self.t_obj.to_bytes();
@@ -169,6 +170,23 @@ impl<T: KVBody> KValueObject for KVObject<T> {
         self.sigture = Some(sigture);
         self.cert = Some(keypair.get_certificate());
 
+        Ok(())
+    }
+
+    fn verfiy_kvhead(&self) -> Result<(), KVObjectError> {
+        // 根据证书链验证证书，略过
+        // 根据证书验证签名
+        if self.cert.is_none() || self.sigture.is_none() {
+            return Err(KVObjectError::KVHeadVerifyError);
+        }
+        if let Some(cert) = &self.cert {
+            if let Some(sigture) = &self.sigture {
+                let isvalid = cert.verify::<Sm3>(self.t_obj.to_bytes().as_ref(), &sigture);
+                if !isvalid {
+                    return Err(KVObjectError::KVHeadVerifyError);
+                }
+            }
+        }
         Ok(())
     }
 }
