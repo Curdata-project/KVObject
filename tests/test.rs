@@ -104,7 +104,9 @@ fn test_kvwrapper() {
 
     //let box_point = Box::new(point);
 
-    let sign_bytes = point.to_bytes(&keypair_sm2).unwrap();
+    point.fill_kvhead(&keypair_sm2).unwrap();
+
+    let sign_bytes = point.to_bytes();
 
     println!("sigture: {:?}", sign_bytes);
 
@@ -125,7 +127,9 @@ fn test_kvwrapper() {
     assert_eq!(Vec::<u8>::from([7, 0, 0, 0]), point_1.get_key("x").unwrap());
     assert_eq!(Vec::<u8>::from([9, 0, 0, 0]), point_1.get_key("y").unwrap());
 
-    let sign_point_1 = point_1.to_bytes(&keypair_sm2).unwrap();
+    point_1.fill_kvhead(&keypair_sm2).unwrap();
+
+    let sign_point_1 = point_1.to_bytes();
 
     println!("{:?}", sign_point_1);
 
