@@ -8,19 +8,19 @@ use dislog_hal::Bytes;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
-const MSGTYPE_LEN: usize = 1;
-const MSGTYPE_OFFSET: usize = 0;
-const MSGTYPE_END: usize = MSGTYPE_OFFSET + MSGTYPE_LEN;
+pub const MSGTYPE_LEN: usize = 1;
+pub const MSGTYPE_OFFSET: usize = 0;
+pub const MSGTYPE_END: usize = MSGTYPE_OFFSET + MSGTYPE_LEN;
 
-const CERT_LEN: usize = 33;
-const CERT_OFFSET: usize = MSGTYPE_END;
-const CERT_END: usize = CERT_OFFSET + CERT_LEN;
+pub const CERT_LEN: usize = 33;
+pub const CERT_OFFSET: usize = MSGTYPE_END;
+pub const CERT_END: usize = CERT_OFFSET + CERT_LEN;
 
-const SIGTURE_LEN: usize = 64;
-const SIGTURE_OFFSET: usize = CERT_END;
-const SIGTURE_END: usize = SIGTURE_OFFSET + SIGTURE_LEN;
+pub const SIGTURE_LEN: usize = 64;
+pub const SIGTURE_OFFSET: usize = CERT_END;
+pub const SIGTURE_END: usize = SIGTURE_OFFSET + SIGTURE_LEN;
 
-const HEAD_TOTAL_LEN: usize = MSGTYPE_LEN + CERT_LEN + SIGTURE_LEN;
+pub const HEAD_TOTAL_LEN: usize = MSGTYPE_LEN + CERT_LEN + SIGTURE_LEN;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum MsgType {
