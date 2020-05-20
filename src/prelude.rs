@@ -23,8 +23,10 @@ pub trait KValueObject: Serialize + for<'de> Deserialize<'de> + AttrProxy {
     type Certificate: asymmetric_crypto::prelude::Certificate<Signature = Self::Signature>;
 
     // 从Bytes反序列化
-    fn from_bytes(bytes: &Self::Bytes) -> Result<Self, KVObjectError>;
+    fn from_bytes(bytes: &[u8]) -> Result<Self, KVObjectError>;
 
     // 序列化成Bytes
-    fn to_bytes(&mut self, keypair: &Self::KeyPair) -> Result<Self::Bytes, KVObjectError>;
+    fn to_bytes(&self) -> Self::Bytes;
+
+    fn fill_kvhead(&mut self, keypair: &Self::KeyPair) -> Result<(), KVObjectError>;
 }
