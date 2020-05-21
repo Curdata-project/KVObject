@@ -11,7 +11,7 @@ pub enum KVObjectError {
     SerializeError,
     SerializeSignError,
     DeSerializeError,
-    DeSerializeVerifyError,
+    KVHeadVerifyError,
     KeyIndexError,
     ValueValid,
 }

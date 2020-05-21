@@ -100,7 +100,7 @@ fn test_kvwrapper() {
     let mut rng = thread_rng();
     let keypair_sm2: KeyPairSm2 = KeyPairSm2::generate(&mut rng).unwrap();
 
-    let mut point = NewPoint::new(MsgType::PREISSUE, TestPoint { x: 3, y: 5 });
+    let mut point = NewPoint::new(MsgType::IssueQuotaRequest, TestPoint { x: 3, y: 5 });
 
     //let box_point = Box::new(point);
 
@@ -111,6 +111,8 @@ fn test_kvwrapper() {
     println!("sigture: {:?}", sign_bytes);
 
     let mut point_1 = NewPoint::from_bytes(&sign_bytes).unwrap();
+
+    assert!(point_1.verfiy_kvhead().is_ok(), true);
 
     println!("{:?}", point_1);
 
@@ -135,7 +137,7 @@ fn test_kvwrapper() {
 
     assert_eq!(
         match get_msgtpye(&sign_point_1).unwrap() {
-            MsgType::PREISSUE => "right type",
+            MsgType::IssueQuotaRequest => "right type",
             _ => panic!(),
         },
         "right type"
@@ -143,7 +145,15 @@ fn test_kvwrapper() {
 
     let point_2 = NewPoint::from_bytes(&sign_point_1).unwrap();
 
+    assert!(point_1.verfiy_kvhead().is_ok(), true);
+
     println!("{:?}", point_2);
     assert_eq!(Vec::<u8>::from([7, 0, 0, 0]), point_1.get_key("x").unwrap());
     assert_eq!(Vec::<u8>::from([9, 0, 0, 0]), point_1.get_key("y").unwrap());
+
+    point_1
+        .set_key("y", &Vec::<u8>::from([6, 0, 0, 0]))
+        .unwrap();
+
+    assert!(point_1.verfiy_kvhead().is_err(), false);
 }
