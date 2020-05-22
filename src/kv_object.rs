@@ -28,6 +28,7 @@ pub enum MsgType {
     QuotaControlField,
     DigitalCurrency,
     QuotaRecycleReceipt,
+    ConvertQoutaRequest,
     Transaction,
 }
 
@@ -45,7 +46,8 @@ impl Bytes for MsgType {
             0x02 => Ok(MsgType::QuotaControlField),
             0x03 => Ok(MsgType::DigitalCurrency),
             0x04 => Ok(MsgType::QuotaRecycleReceipt),
-            0x05 => Ok(MsgType::Transaction),
+            0x05 => Ok(MsgType::ConvertQoutaRequest),
+            0x06 => Ok(MsgType::Transaction),
             _ => Err(KVObjectError::DeSerializeError),
         }
     }
@@ -56,7 +58,8 @@ impl Bytes for MsgType {
             MsgType::QuotaControlField => [0x02],
             MsgType::DigitalCurrency => [0x03],
             MsgType::QuotaRecycleReceipt => [0x04],
-            MsgType::Transaction => [0x05],
+            MsgType::ConvertQoutaRequest => [0x05],
+            MsgType::Transaction => [0x06],
         })
     }
 }
