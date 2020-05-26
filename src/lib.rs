@@ -1,3 +1,7 @@
+#![no_std]
+
+extern crate alloc;
+
 pub mod kv_object;
 
 pub mod prelude;

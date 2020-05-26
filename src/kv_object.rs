@@ -1,6 +1,7 @@
 use crate::prelude::{AttrProxy, KValueObject};
 use crate::sm2::{CertificateSm2, KeyPairSm2};
 use crate::KVObjectError;
+use alloc::vec::Vec;
 use asymmetric_crypto::hasher::sm3::Sm3;
 use asymmetric_crypto::prelude::{Certificate, Keypair};
 use core::fmt::Debug;
