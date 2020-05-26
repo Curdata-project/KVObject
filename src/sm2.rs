@@ -93,7 +93,6 @@ mod tests {
     use super::KeyPairSm2;
     use asymmetric_crypto::hasher::sm3::Sm3;
     use asymmetric_crypto::prelude::Certificate;
-    use dislog_hal::Bytes;
 
     #[test]
     fn it_works() {
@@ -111,8 +110,6 @@ mod tests {
         let sig_info = keypair_sm2
             .sign::<Sm3, _>(&data_b[..], &mut thread_rng())
             .unwrap();
-
-        println!("sigture: {:?}", sig_info.to_bytes());
 
         let cert_sm2 = keypair_sm2.get_certificate();
 
