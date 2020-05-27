@@ -6,7 +6,7 @@ use asymmetric_crypto::hasher::sm3::Sm3;
 use asymmetric_crypto::prelude::{Certificate, Keypair};
 use core::fmt::Debug;
 use dislog_hal::Bytes;
-use rand::thread_rng;
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 
 pub const MSGTYPE_LEN: usize = 1;
@@ -88,7 +88,7 @@ pub trait KVBody:
 pub struct KVObject<T: KVBody> {
     msg_type: MsgType,
     cert: Option<CertificateSm2>,
-    sigture: Option<<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature>,
+    signature: Option<<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature>,
     #[serde(bound(deserialize = "T: KVBody"))]
     t_obj: T,
 }
@@ -98,7 +98,7 @@ impl<T: KVBody> KVObject<T> {
         Self {
             msg_type,
             cert: None,
-            sigture: None,
+            signature: None,
             t_obj,
         }
     }
@@ -121,7 +121,7 @@ impl<T: KVBody> Bytes for KVObject<T> {
             .map_err(|_| KVObjectError::DeSerializeError)?;
         let cert = CertificateSm2::from_bytes(&bytes[CERT_OFFSET..CERT_END])
             .map_err(|_| KVObjectError::DeSerializeError)?;
-        let sigture = <KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature::from_bytes(
+        let signature = <KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature::from_bytes(
             &bytes[SIGTURE_OFFSET..SIGTURE_END],
         )
         .map_err(|_| KVObjectError::DeSerializeError)?;
@@ -136,7 +136,7 @@ impl<T: KVBody> Bytes for KVObject<T> {
         Ok(Self {
             msg_type,
             cert: Some(cert),
-            sigture: Some(sigture),
+            signature: Some(signature),
             t_obj,
         })
     }
@@ -148,8 +148,8 @@ impl<T: KVBody> Bytes for KVObject<T> {
         if let Some(cert) = &self.cert {
             ret.extend_from_slice(cert.to_bytes().as_ref());
         }
-        if let Some(sigture) = &self.sigture {
-            ret.extend_from_slice(sigture.to_bytes().as_ref());
+        if let Some(signature) = &self.signature {
+            ret.extend_from_slice(signature.to_bytes().as_ref());
         }
         ret.extend_from_slice(self.t_obj.to_bytes().as_ref());
 
@@ -164,14 +164,18 @@ impl<T: KVBody> KValueObject for KVObject<T> {
 
     type Signature = <KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature;
 
-    fn fill_kvhead(&mut self, keypair: &Self::KeyPair) -> Result<(), KVObjectError> {
+    fn fill_kvhead(
+        &mut self,
+        keypair: &Self::KeyPair,
+        rng: &mut impl RngCore,
+    ) -> Result<(), KVObjectError> {
         let body_ = self.t_obj.to_bytes();
 
-        let sigture = keypair
-            .sign::<Sm3, _>(body_.as_ref(), &mut thread_rng())
+        let signature = keypair
+            .sign::<Sm3, _>(body_.as_ref(), rng)
             .map_err(|_| KVObjectError::SerializeSignError)?;
 
-        self.sigture = Some(sigture);
+        self.signature = Some(signature);
         self.cert = Some(keypair.get_certificate());
 
         Ok(())
@@ -180,12 +184,12 @@ impl<T: KVBody> KValueObject for KVObject<T> {
     fn verfiy_kvhead(&self) -> Result<(), KVObjectError> {
         // 根据证书链验证证书，略过
         // 根据证书验证签名
-        if self.cert.is_none() || self.sigture.is_none() {
+        if self.cert.is_none() || self.signature.is_none() {
             return Err(KVObjectError::KVHeadVerifyError);
         }
         if let Some(cert) = &self.cert {
-            if let Some(sigture) = &self.sigture {
-                let isvalid = cert.verify::<Sm3>(self.t_obj.to_bytes().as_ref(), &sigture);
+            if let Some(signature) = &self.signature {
+                let isvalid = cert.verify::<Sm3>(self.t_obj.to_bytes().as_ref(), &signature);
                 if !isvalid {
                     return Err(KVObjectError::KVHeadVerifyError);
                 }
