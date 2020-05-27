@@ -1,5 +1,6 @@
 use crate::KVObjectError;
 use dislog_hal::Bytes;
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
 
 pub trait AttrProxy {
@@ -19,7 +20,11 @@ pub trait KValueObject: Serialize + for<'de> Deserialize<'de> + AttrProxy + Byte
 
     type Certificate: asymmetric_crypto::prelude::Certificate<Signature = Self::Signature>;
 
-    fn fill_kvhead(&mut self, keypair: &Self::KeyPair) -> Result<(), KVObjectError>;
+    fn fill_kvhead(
+        &mut self,
+        keypair: &Self::KeyPair,
+        rng: &mut impl RngCore,
+    ) -> Result<(), KVObjectError>;
 
     fn verfiy_kvhead(&self) -> Result<(), KVObjectError>;
 }
