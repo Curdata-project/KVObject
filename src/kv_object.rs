@@ -106,6 +106,16 @@ impl<T: KVBody> KVObject<T> {
     pub fn get_body(&self) -> &T {
         &self.t_obj
     }
+
+    pub fn get_cert(&self) -> &Option<CertificateSm2> {
+        &self.cert
+    }
+
+    pub fn get_signature(
+        &self,
+    ) -> &Option<<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature> {
+        &self.signature
+    }
 }
 
 impl<T: KVBody> Bytes for KVObject<T> {

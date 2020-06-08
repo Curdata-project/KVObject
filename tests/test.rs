@@ -9,7 +9,7 @@ use kv_object::KVObjectError;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TestPoint {
     pub x: i32,
     pub y: i32,
@@ -104,6 +104,10 @@ fn test_kvwrapper() {
 
     //let box_point = Box::new(point);
 
+    assert_eq!(&TestPoint { x: 3, y: 5 }, point.get_body());
+    assert_eq!(true, point.get_cert().is_none());
+    assert_eq!(true, point.get_signature().is_none());
+
     point.fill_kvhead(&keypair_sm2, &mut rng).unwrap();
 
     let sign_bytes = point.to_bytes();
@@ -113,6 +117,16 @@ fn test_kvwrapper() {
     let mut point_1 = NewPoint::from_bytes(&sign_bytes).unwrap();
 
     assert!(point_1.verfiy_kvhead().is_ok(), true);
+
+    assert_eq!(&TestPoint { x: 3, y: 5 }, point_1.get_body());
+    assert_eq!(
+        serde_json::to_string(&point.get_cert()).unwrap(),
+        serde_json::to_string(&point_1.get_cert()).unwrap()
+    );
+    assert_eq!(
+        serde_json::to_string(&point.get_signature()).unwrap(),
+        serde_json::to_string(&point_1.get_signature()).unwrap()
+    );
 
     println!("{:?}", point_1);
 
