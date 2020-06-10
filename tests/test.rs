@@ -112,18 +112,30 @@ fn test_kvwrapper() {
 
     println!("{:?}", point_1);
 
-    assert_eq!(Vec::<u8>::from([3, 0, 0, 0]), point_1.get_key("x").unwrap());
-    assert_eq!(Vec::<u8>::from([5, 0, 0, 0]), point_1.get_key("y").unwrap());
+    assert_eq!(
+        Vec::<u8>::from([3, 0, 0, 0].as_ref()),
+        point_1.get_key("x").unwrap()
+    );
+    assert_eq!(
+        Vec::<u8>::from([5, 0, 0, 0].as_ref()),
+        point_1.get_key("y").unwrap()
+    );
 
     point_1
-        .set_key("x", &Vec::<u8>::from([7, 0, 0, 0]))
+        .set_key("x", &Vec::<u8>::from([7, 0, 0, 0].as_ref()))
         .unwrap();
     point_1
-        .set_key("y", &Vec::<u8>::from([9, 0, 0, 0]))
+        .set_key("y", &Vec::<u8>::from([9, 0, 0, 0].as_ref()))
         .unwrap();
 
-    assert_eq!(Vec::<u8>::from([7, 0, 0, 0]), point_1.get_key("x").unwrap());
-    assert_eq!(Vec::<u8>::from([9, 0, 0, 0]), point_1.get_key("y").unwrap());
+    assert_eq!(
+        Vec::<u8>::from([7, 0, 0, 0].as_ref()),
+        point_1.get_key("x").unwrap()
+    );
+    assert_eq!(
+        Vec::<u8>::from([9, 0, 0, 0].as_ref()),
+        point_1.get_key("y").unwrap()
+    );
 
     let sign_point_1 = point_1.to_bytes(&keypair_sm2).unwrap();
 
@@ -140,6 +152,12 @@ fn test_kvwrapper() {
     let point_2 = NewPoint::from_bytes(&sign_point_1).unwrap();
 
     println!("{:?}", point_2);
-    assert_eq!(Vec::<u8>::from([7, 0, 0, 0]), point_1.get_key("x").unwrap());
-    assert_eq!(Vec::<u8>::from([9, 0, 0, 0]), point_1.get_key("y").unwrap());
+    assert_eq!(
+        Vec::<u8>::from([7, 0, 0, 0].as_ref()),
+        point_1.get_key("x").unwrap()
+    );
+    assert_eq!(
+        Vec::<u8>::from([9, 0, 0, 0].as_ref()),
+        point_1.get_key("y").unwrap()
+    );
 }

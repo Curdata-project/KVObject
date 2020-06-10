@@ -47,12 +47,15 @@ impl Bytes for MsgType {
     }
 
     fn to_bytes(&self) -> Self::BytesType {
-        Vec::<u8>::from(match self {
-            MsgType::PREISSUE => [0x01],
-            MsgType::ISSUE => [0x02],
-            MsgType::Quota => [0x03],
-            MsgType::Currency => [0x04],
-        })
+        Vec::<u8>::from(
+            match self {
+                MsgType::PREISSUE => [0x01],
+                MsgType::ISSUE => [0x02],
+                MsgType::Quota => [0x03],
+                MsgType::Currency => [0x04],
+            }
+            .as_ref(),
+        )
     }
 }
 
