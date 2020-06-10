@@ -54,14 +54,15 @@ impl Bytes for MsgType {
     }
 
     fn to_bytes(&self) -> Self::BytesType {
-        Vec::<u8>::from(match self {
+        let byte: [u8; 1] = match self {
             MsgType::IssueQuotaRequest => [0x01],
             MsgType::QuotaControlField => [0x02],
             MsgType::DigitalCurrency => [0x03],
             MsgType::QuotaRecycleReceipt => [0x04],
             MsgType::ConvertQoutaRequest => [0x05],
             MsgType::Transaction => [0x06],
-        })
+        };
+        Vec::<u8>::from(byte)
     }
 }
 
