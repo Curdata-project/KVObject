@@ -106,7 +106,7 @@ fn test_kvwrapper() {
 
     let keypair_sm2: KeyPairSm2 = KeyPairSm2::from_bytes(store_keypair.as_ref()).unwrap();
 
-    let mut point = NewPoint::new(MsgType::PREISSUE, TestPoint { x: 3, y: 5 });
+    let mut point = NewPoint::new(MsgType::IssueQuotaRequest, TestPoint { x: 3, y: 5 });
 
     //let box_point = Box::new(point);
 
