@@ -91,7 +91,7 @@ pub trait KVBody:
 pub struct KVObject<T: KVBody> {
     msg_type: MsgType,
     cert: Option<CertificateSm2>,
-    signature: Option<<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature>,
+    signature: Option<<CertificateSm2 as Certificate>::Signature>,
     #[serde(bound(deserialize = "T: KVBody"))]
     t_obj: T,
 }
@@ -116,7 +116,7 @@ impl<T: KVBody> KVObject<T> {
 
     pub fn get_signature(
         &self,
-    ) -> &Option<<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature> {
+    ) -> &Option<<CertificateSm2 as Certificate>::Signature> {
         &self.signature
     }
 }
@@ -134,7 +134,7 @@ impl<T: KVBody> Bytes for KVObject<T> {
             .map_err(|_| KVObjectError::DeSerializeError)?;
         let cert = CertificateSm2::from_bytes(&bytes[CERT_OFFSET..CERT_END])
             .map_err(|_| KVObjectError::DeSerializeError)?;
-        let signature = <KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature::from_bytes(
+        let signature = <CertificateSm2 as Certificate>::Signature::from_bytes(
             &bytes[SIGTURE_OFFSET..SIGTURE_END],
         )
         .map_err(|_| KVObjectError::DeSerializeError)?;
@@ -160,9 +160,13 @@ impl<T: KVBody> Bytes for KVObject<T> {
         ret.extend_from_slice(self.msg_type.to_bytes().as_ref());
         if let Some(cert) = &self.cert {
             ret.extend_from_slice(cert.to_bytes().as_ref());
+        } else {
+            ret.extend_from_slice(CertificateSm2::default().to_bytes().as_ref());
         }
         if let Some(signature) = &self.signature {
             ret.extend_from_slice(signature.to_bytes().as_ref());
+        } else {
+            ret.extend_from_slice(<CertificateSm2 as Certificate>::Signature::default().to_bytes().as_ref());
         }
         ret.extend_from_slice(self.t_obj.to_bytes().as_ref());
 
@@ -175,7 +179,7 @@ impl<T: KVBody> KValueObject for KVObject<T> {
 
     type Certificate = CertificateSm2;
 
-    type Signature = <KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Signature;
+    type Signature = <CertificateSm2 as Certificate>::Signature;
 
     fn fill_kvhead(
         &mut self,
