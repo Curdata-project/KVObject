@@ -2,14 +2,14 @@ use asymmetric_crypto::prelude::Keypair;
 use core::fmt::Debug;
 use dislog_hal::Bytes;
 use kv_object::kv_object::MsgType;
-use kv_object::kv_object::{get_msgtpye, KVWrapperT, KvWrapper};
-use kv_object::prelude::{AttrProxy, KVObject};
+use kv_object::kv_object::{get_msgtpye, KVBody, KVObject};
+use kv_object::prelude::{AttrProxy, KValueObject};
 use kv_object::sm2::KeyPairSm2;
 use kv_object::KVObjectError;
 use rand::thread_rng;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct TestPoint {
     pub x: i32,
     pub y: i32,
@@ -80,9 +80,9 @@ impl AttrProxy for TestPoint {
     }
 }
 
-impl KVWrapperT for TestPoint {}
+impl KVBody for TestPoint {}
 
-type NewPoint = KvWrapper<TestPoint>;
+type NewPoint = KVObject<TestPoint>;
 
 #[test]
 fn test_json_object() {
@@ -110,34 +110,66 @@ fn test_kvwrapper() {
 
     //let box_point = Box::new(point);
 
-    let sign_bytes = point.to_bytes(&keypair_sm2).unwrap();
+    assert_eq!(&TestPoint { x: 3, y: 5 }, point.get_body());
+    assert_eq!(true, point.get_cert().is_none());
+    assert_eq!(true, point.get_signature().is_none());
+
+    point.fill_kvhead(&keypair_sm2, &mut rng).unwrap();
+
+    let sign_bytes = point.to_bytes();
 
     println!("sigture: {:?}", sign_bytes);
 
     let mut point_1 = NewPoint::from_bytes(&sign_bytes).unwrap();
 
+    assert!(point_1.verfiy_kvhead().is_ok(), true);
+
+    assert_eq!(&TestPoint { x: 3, y: 5 }, point_1.get_body());
+    assert_eq!(
+        serde_json::to_string(&point.get_cert()).unwrap(),
+        serde_json::to_string(&point_1.get_cert()).unwrap()
+    );
+    assert_eq!(
+        serde_json::to_string(&point.get_signature()).unwrap(),
+        serde_json::to_string(&point_1.get_signature()).unwrap()
+    );
+
     println!("{:?}", point_1);
 
-    assert_eq!(Vec::<u8>::from([3, 0, 0, 0]), point_1.get_key("x").unwrap());
-    assert_eq!(Vec::<u8>::from([5, 0, 0, 0]), point_1.get_key("y").unwrap());
+    assert_eq!(
+        Vec::<u8>::from([3, 0, 0, 0].as_ref()),
+        point_1.get_key("x").unwrap()
+    );
+    assert_eq!(
+        Vec::<u8>::from([5, 0, 0, 0].as_ref()),
+        point_1.get_key("y").unwrap()
+    );
 
     point_1
-        .set_key("x", &Vec::<u8>::from([7, 0, 0, 0]))
+        .set_key("x", &Vec::<u8>::from([7, 0, 0, 0].as_ref()))
         .unwrap();
     point_1
-        .set_key("y", &Vec::<u8>::from([9, 0, 0, 0]))
+        .set_key("y", &Vec::<u8>::from([9, 0, 0, 0].as_ref()))
         .unwrap();
 
-    assert_eq!(Vec::<u8>::from([7, 0, 0, 0]), point_1.get_key("x").unwrap());
-    assert_eq!(Vec::<u8>::from([9, 0, 0, 0]), point_1.get_key("y").unwrap());
+    assert_eq!(
+        Vec::<u8>::from([7, 0, 0, 0].as_ref()),
+        point_1.get_key("x").unwrap()
+    );
+    assert_eq!(
+        Vec::<u8>::from([9, 0, 0, 0].as_ref()),
+        point_1.get_key("y").unwrap()
+    );
 
-    let sign_point_1 = point_1.to_bytes(&keypair_sm2).unwrap();
+    point_1.fill_kvhead(&keypair_sm2, &mut rng).unwrap();
+
+    let sign_point_1 = point_1.to_bytes();
 
     println!("{:?}", sign_point_1);
 
     assert_eq!(
         match get_msgtpye(&sign_point_1).unwrap() {
-            MsgType::PREISSUE => "right type",
+            MsgType::IssueQuotaRequest => "right type",
             _ => panic!(),
         },
         "right type"
@@ -145,7 +177,21 @@ fn test_kvwrapper() {
 
     let point_2 = NewPoint::from_bytes(&sign_point_1).unwrap();
 
+    assert!(point_1.verfiy_kvhead().is_ok(), true);
+
     println!("{:?}", point_2);
-    assert_eq!(Vec::<u8>::from([7, 0, 0, 0]), point_1.get_key("x").unwrap());
-    assert_eq!(Vec::<u8>::from([9, 0, 0, 0]), point_1.get_key("y").unwrap());
+    assert_eq!(
+        Vec::<u8>::from([7, 0, 0, 0].as_ref()),
+        point_1.get_key("x").unwrap()
+    );
+    assert_eq!(
+        Vec::<u8>::from([9, 0, 0, 0].as_ref()),
+        point_1.get_key("y").unwrap()
+    );
+
+    point_1
+        .set_key("y", &Vec::<u8>::from([6, 0, 0, 0].as_ref()))
+        .unwrap();
+
+    assert!(point_1.verfiy_kvhead().is_err(), false);
 }
