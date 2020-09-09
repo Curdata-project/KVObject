@@ -2,13 +2,13 @@ use crate::KVObjectError;
 use asymmetric_crypto::hasher::sha3::Sha3;
 use asymmetric_crypto::keypair::Keypair;
 use asymmetric_crypto::prelude::Certificate;
-use asymmetric_crypto::{signature, CryptoError};
+use asymmetric_crypto::{signature, CryptoError, NewU8129};
 use dislog_hal::{Bytes, Hasher, Point, Scalar};
 use dislog_hal_sm2::NewU833;
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Default, Debug, Clone, Serialize, Deserialize)]
 pub struct KeyPairSm2(
     pub Keypair<[u8; 32], Sha3, dislog_hal_sm2::PointInner, dislog_hal_sm2::ScalarInner>,
 );
@@ -55,7 +55,41 @@ impl asymmetric_crypto::prelude::Keypair for KeyPairSm2 {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+impl Bytes for KeyPairSm2 {
+    type BytesType = NewU8129;
+
+    type Error = KVObjectError;
+
+    fn from_bytes(bytes: &[u8]) -> Result<Self, Self::Error> {
+        let mut seed = [0u8; 32];
+        for i in 0..32 {
+            seed.as_mut()[i] = bytes[i];
+        }
+        let pri_key = Scalar::<dislog_hal_sm2::ScalarInner>::from_bytes(&bytes[32..64])
+            .map_err(|_| KVObjectError::DeSerializeError)?;
+        let pub_key = Point::<dislog_hal_sm2::PointInner>::from_bytes(&bytes[64..97])
+            .map_err(|_| KVObjectError::DeSerializeError)?;
+        let mut code = [0u8; 32];
+        for i in 0..32 {
+            code.as_mut()[i] = bytes[97 + i];
+        }
+        Ok(Self(Keypair::<_, _, _, _>::new(
+            seed, pub_key, pri_key, code,
+        )))
+    }
+
+    fn to_bytes(&self) -> Self::BytesType {
+        let mut ret = [0u8; 129];
+        ret[0..32].clone_from_slice(self.0.get_seed().as_ref());
+        ret[32..64].clone_from_slice(self.0.get_secret_key().to_bytes().as_ref());
+        ret[64..97].clone_from_slice(self.0.get_public_key().to_bytes().as_ref());
+        ret[97..129].clone_from_slice(self.0.get_seed().as_ref());
+
+        NewU8129(ret)
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CertificateSm2(<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Public);
 
 impl Certificate for CertificateSm2 {
@@ -69,6 +103,12 @@ impl Certificate for CertificateSm2 {
         let mut hasher = H::default();
         hasher.update(msg);
         signature::sm2::sm2_verify::<_, H, _, _>(hasher, &self.0, signature)
+    }
+}
+
+impl Default for CertificateSm2 {
+    fn default() -> Self {
+        Self(<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Public::default())
     }
 }
 

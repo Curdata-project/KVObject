@@ -144,9 +144,13 @@ impl<T: KVWrapperT> KVObject for KvWrapper<T> {
         ret.extend_from_slice(self.msg_type.to_bytes().as_ref());
         if let Some(cert) = &self.cert {
             ret.extend_from_slice(cert.to_bytes().as_ref());
+        } else {
+            ret.extend_from_slice(Self::Certificate::default().to_bytes().as_ref());
         }
         if let Some(sigture) = &self.sigture {
             ret.extend_from_slice(sigture.to_bytes().as_ref());
+        } else {
+            ret.extend_from_slice(Self::Signature::default().to_bytes().as_ref());
         }
         ret.extend_from_slice(body_.as_ref());
 
