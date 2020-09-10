@@ -112,6 +112,7 @@ fn test_kvwrapper() {
 
     assert_eq!(&TestPoint { x: 3, y: 5 }, point.get_body());
     assert_eq!(true, point.get_cert().is_none());
+    assert_eq!(true, point.get_cert() == point.get_cert());
     assert_eq!(true, point.get_signature().is_none());
 
     point.fill_kvhead(&keypair_sm2, &mut rng).unwrap();
