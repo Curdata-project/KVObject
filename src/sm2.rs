@@ -115,7 +115,7 @@ impl<'de> Deserialize<'de> for KeyPairSm2 {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct CertificateSm2(<KeyPairSm2 as asymmetric_crypto::prelude::Keypair>::Public);
 
 impl Certificate for CertificateSm2 {
